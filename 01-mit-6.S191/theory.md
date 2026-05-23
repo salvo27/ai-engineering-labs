@@ -18,7 +18,7 @@ Perché proprio ora sta esplodendo? Per tre fattori:
 - Hardware: abbiamo raggiunto livelli tali da supportare il DL, ad esempio GPU altamente parallelizzabili;
 - Software: gli algoritmi sono migliorati in maniera notevole, abbiamo toolbox come TensorFlow e PyTorch (che utilizzeremo all'interno del manuale).
 
-# Il Perceptron (Percettone), l'atomo della rete neurale.
+## Il Perceptron (Percettone), l'atomo della rete neurale.
 Il perceptron è il blocco costruttivo fondamentale, il tipo di rete più semplice possibile. Funziona come un neurone biologico semplificato, che riceve degli input, li elabora, e produce un output.
 
 L'output di un perceptron è definito dalla seguente formula matematica:
@@ -47,7 +47,7 @@ Ad esempio, se dovessimo distinguere le persone malate da quelle sane, senza bia
 
 - y : l'output predetto.
 
-# L'importanza della non linearità
+## L'importanza della non linearità
 Senza la funzione di attivazione g, la rete sarebbe soltanto una combinazione lineare di input, incapace di modellare problemi complessi. 
 
 Se colleghiamo in cascata un secondo strato di neuroni, questo prenderà in input una combinazione lineare, e darà in output un altra combinazione lineare. Da un punto di vista puramente matematico, la combinazione lineare di una combinazione lineare, è essa stessa una combinazione lineare. Questo significherebbe che se anche riuscissimo a costruire una rete neurale gigantesca, con 100 strati e miliardi di parametri, senza funzioni di attivazione non lineari, quella rete si comporterà matematicamente come il semplicissimo perceptron. Avremmo costruito un castello gigantesco ma potente quanto una piccola casetta.
@@ -82,7 +82,7 @@ $$z_i = w_{0,i} + \sum_{j=1}^{m} x_j w_{j,i}$$
 
 Dove $$w_{j,i}$$ è il peso che collega l'input j al neurone i.
 
-# Single Layer Neural Network
+## Single Layer Neural Network
 Una Single Layer Neural Network (SLNN) (o spesso chiamata semplicemente Single Layer Perceptron Network) non è altro che una rete neurale in cui è presente un unico Dense Layer. Ovvero il layer di output. (Nessun hidden layer)
 
 $$\hat{y}_i = g\!\left(\mathbf{w}_i^\top \mathbf{x} + b_i\right)$$
@@ -91,10 +91,10 @@ In forma vettoriale (tutti gli output insieme):
 
 $$\hat{\mathbf{y}} = g\!\left(W\mathbf{x} + \mathbf{b}\right)$$
 
-# Multi Layer Perceptron (MLP)
+## Multi Layer Perceptron (MLP)
 La MLP è una rete neurale composta da più strati densi (almeno 2), ed è composta da almeno un hidden layer. E' l'architettura classica in cui l'informazione scorre in un'unica direzione, dall'input all'output. 
 
-# Deep Neural Network
+## Deep Neural Network
 Una MLP può essere una Deep Network se ha molti strati nascosti.
 
 $$z_{k,i} = w_{0,i}^{(k)} + \sum_{j=1}^{n_{k-1}} g(z_{k-1,j})\, w_{j,i}^{(k)}$$
