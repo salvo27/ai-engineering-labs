@@ -1,0 +1,2 @@
+# ai-engineering-labs
+Welcome to my AI Transition Manual! This self-paced repo tracks my journey to becoming an AI Engineer. Built 100% self-taught via top-tier, open-access curriculums like MIT courses, this space is architected as a step-by-step blueprint for any software engineer looking to replicate my path. Feel free to use it as your own guide!
