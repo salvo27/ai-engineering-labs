@@ -115,7 +115,7 @@ dove:
 Ogni layer successivo non elabora più dati grezzi (x), ma le rappresentazioni astratte create dal layer precedente.
 
 I primi layer potrebbero rilevare semplici bordi o gradienti.
-I bordi intermedi combinano i bordi in forme.
+I layer intermedi combinano i bordi in forme.
 I layer finali riconoscono oggetti complessi.
 
 Per capire questo concetto pensiamo a dei mattoncini lego:
@@ -136,7 +136,7 @@ Questa funzione misura quanto $\hat{y}$ è lontana da $y$. Ma come è composta q
 
 - Mean Squared Error (MSE): Usata per la regressione (es. predire il prezzo di una casa). Si calcola il quadrato della differenza tra predetto e reale;
 
-- Binary Cross Entropy: Usata per la classificazione (es. "Sì" o "No"). Misura la distanza tra due distribuzioni di probabilità;
+- Binary Cross Entropy: Usata per la classificazione (es. "Sì" o "No"). Misura quanto la probabilità predetta si discosta dal target reale;
 
 $$J(W) = \frac{1}{n} \sum_{i=1}^{n} \mathcal{L}\left(f\left(x^{(i)}; W\right), y^{(i)}\right)$$
 
@@ -144,8 +144,215 @@ $J(W)$ misura la Loss media sulla nostra rete neurale, 1/n serve a normalizzarla
 
 Quando applichiamo la **Mean Squared Error**, l'obiettivo della rete è predire un valore numerico continuo. Vogliamo quantificare di quanto il nostro risultato numerico si discosta da quello reale.
 
+$$J(\mathbf{W}) = \frac{1}{n} \sum_{i=1}^{n} \left( y^{(i)} - f\left(x^{(i)}; \mathbf{W}\right)\right)^2$$
+
 Immaginiamo di voler predire il voto esatto che uno studente prenderà all'esame (un valore da 18 a 30). Se la rete predice $24$ ($\hat{y}$) ma lo studente prende $28$ ($y$), la MSE misura la distanza lineare tra questi due numeri reali, la eleva al quadrato per penalizzare l'errore e dice alla rete come correggersi.
 
 Quando applichiamo la **Binary Cross-Entropy**, l'obiettivo cambia completamente: non cerchiamo un numero qualunque, ma una probabilità strettamente compresa tra 0 e 1. Vogliamo misurare di quanto si discosta la certezza calcolata dalla rete rispetto alla realtà dei fatti.
 
+$$J(\mathbf{W}) = -\frac{1}{n} \sum_{i=1}^{n} \left[ y^{(i)} \log\left(f\left(x^{(i)}; \mathbf{W}\right)\right) + \left(1 - y^{(i)}\right) \log\left(1 - f\left(x^{(i)}; \mathbf{W}\right)\right) \right]$$
+
 Immagina di voler predire se lo studente supererà o meno l'esame (un problema binario: 1 = Passato, 0 = Bocciato). Se la rete sputa fuori $0.95$ ($\hat{y}$), sta dicendo che lo studente ha il 95% di probabilità di passare. Se lo studente viene inaspettatamente bocciato ($y = 0$), la BCE calcola quanto la rete è stata "punita" per aver dato una probabilità così alta a un evento che si è rivelato falso.
+
+## Un focus sulla Binary Cross Entropy
+A prima vista può sembrare intimidatoria, ma in realtà è molto semplice da comprendere. Smontiamola per capire esattamente come funziona.
+
+Il target reale $y^{(i)}$ in una classificazione binaria può assumere solo due valori: **$1$** (evento vero) oppure **$0$** (evento falso).
+All'interno della parentesi quadra notiamo due blocchi distinti separati da un segno $+$. Il valore di $y^{(i)}$ funge da vero e proprio **interruttore software**:
+
+- **Se il target reale è $y^{(i)} = 1$ (Lo studente passa l'esame):**
+  Il secondo blocco si annulla completamente perché contiene il fattore $(1 - y^{(i)})$, ovvero $(1 - 1) = 0$. 
+  La formula si riduce a valutare solo il primo pezzo: **$1 \cdot \log(\hat{y})$**.
+- **Se il target reale è $y^{(i)} = 0$ (Lo studente viene bocciato):**
+  Il primo blocco si annulla perché moltiplicato direttamente per $y^{(i)} = 0$. Il secondo blocco invece si attiva poiché $(1 - 0) = 1$. 
+  La formula si riduce a valutare solo il secondo pezzo: **$1 \cdot \log(1 - \hat{y})$**.
+
+Grazie a questo trucco algebrico, un'unica riga di codice riesce a gestire contemporaneamente e in modo pulito sia i casi positivi che quelli negativi.
+
+### Perché si usa il Logaritmo ($\log$)?
+
+Il motivo fondamentale per cui introduciamo il logaritmo è legato al concetto di **distanza tra distribuzioni di probabilità** e alla forma geometrica che vogliamo dare alla nostra superficie d'errore. 
+
+L'output della nostra rete, $\hat{y} = f(x^{(i)}; \mathbf{W})$, è una probabilità ed è quindi un numero strettamente confinato tra $0$ e $1$.
+Andiamo a vedere cosa succede al logaritmo in questo intervallo:
+
+* Il logaritmo di $1$ è pari a $0$: $\log(1) = 0$.
+* Quando ci avviciniamo a $0$, il logaritmo tende a meno infinito: $\log(\rightarrow 0) = -\infty$.
+
+
+
+Abbinando questa proprietà geometrica al **segno meno ($-$)** posto all'inizio della formula, otteniamo una punizione (una Loss) che si comporta in modo asimmetrico ed estremamente severo:
+
+#### Caso A: Il target reale è $y = 1$
+La rete deve tirare fuori un valore il più vicino possibile a $1$.
+* Se la rete indovina e dice $\hat{y} = 0.99$, calcoliamo $-\log(0.99) \approx 0.01$ $\rightarrow$ **La Loss è quasi zero** (la rete viene premiata).
+* Se la rete prende una sbandata incredibile e dice $\hat{y} = 0.01$ (sicura al 99% che l'evento sia falso), calcoliamo $-\log(0.01) \approx 4.60$. Man mano che la predizione si avvicina allo zero reale, il valore schizza verso l'infinito $\rightarrow$ **La Loss diventa gigantesca**.
+
+#### Caso B: Il target reale è $y = 0$
+La rete deve cacciare fuori un valore il più vicino possibile a $0$, il che significa che il termine $(1 - \hat{y})$ deve avvicinarsi a $1$.
+* Se la rete indovina e dice $\hat{y} = 0.01$, il termine diventa $-\log(1 - 0.01) = -\log(0.99) \approx 0.01$ => **La Loss è minima**.
+* Se la rete sbaglia e dice $\hat{y} = 0.99$ (sicura che lo studente passi, ma viene bocciato), calcoliamo $-\log(1 - 0.99) = -\log(0.01) \approx 4.60$ => **La Loss esplode di nuovo**.
+
+### Vantaggi della BCE rispetto alla MSE nella classificazione
+
+Perché non usare la semplice differenza al quadrato (MSE) anche per la classificazione?.
+Ci sono due motivi cruciali per l'AI Engineering:
+
+1. **Massima penalizzazione per l'eccesso di sicurezza errato:** Se una rete sbaglia una classificazione usando la MSE, l'errore massimo per un singolo campione è $(1 - 0)^2 = 1$. La rete non viene punita abbastanza se è "arrogante". La BCE, grazie alla curva logaritmica, tende a una punizione infinita. Questo costringe i pesi a cambiare istantaneamente.
+2. **Stabilità matematica dei Gradienti:** Le funzioni di attivazione usate per la classificazione (come la *Sigmoide*) si appiattiscono alle estremità (quando l'output è vicino a 0 o 1), portando le derivate a zero. Se usassimo la MSE, l'addestramento si bloccherebbe perché i gradienti diventerebbero troppo piccoli (Vanishing Gradient). Il logaritmo della BCE cancella matematicamente questo appiattimento, mantenendo il flusso dei gradienti sempre vivo durante il processo di ottimizzazione.
+
+Noi vogliamo trovare le network weights che riducono al minimo l'errore:
+
+$$\mathbf{W}^* = \arg\min_{\mathbf{W}} \frac{1}{n} \sum_{i=1}^{n} \mathcal{L}\left(f\left(x^{(i)}; \mathbf{W}\right), y^{(i)}\right)$$
+
+$$\mathbf{W}^* = \arg\min_{\mathbf{W}} J(\mathbf{W})$$
+
+## La Backpropagation
+Il termine backpropagation risponde alla domanda: Se cambio leggermente un peso $w_j$, di quanto cambierà l'errore finale $J(W)$?
+
+Ricordiamoci che la nostra Loss è una funzione dei pesi della rete.
+
+Immaginiamo di avere questa funzione, e prendiamo un punto a caso sulla nostra funzione dei pesi.
+
+A questo punto calcoliamo il gradiente in questo punto scelto in maniera randomica. Una volta calcolato il gradiente (che ci dà la direzione in cui la nostra Loss aumenta, punta verso il massimo), noi ci muoviamo nella direzione opposta al gradiene, in maniera tale da muoverci verso il minimo, dove l'errore tende a essere più basso.
+
+Continuiamo a ripetere questo processo finché non convergiamo al minimo.
+
+### L'Algoritmo del gradient descent
+
+- Assegniamo ai pesi dei valori casuali estratti da una distribuzione normale: $\mathbf{W} \sim \mathcal{N}(0, \sigma^2)$ (es. con deviazione standard $\sigma = 0.02$).
+- Calcoliamo il vettore del gradiente della funzione di costo rispetto ai pesi: $\nabla_{\mathbf{W}} J(\mathbf{W})$, e aggiorniamo i pesi muovendoti nella direzione opposta al gradiente:
+     $$\mathbf{W} \leftarrow \mathbf{W} - \eta \nabla_{\mathbf{W}} J(\mathbf{W})$$
+- Restituiamo i pesi ottimali $\mathbf{W}^*$ quando l'algoritmo converge (ovvero quando la Loss smette di scendere).
+
+Il parametro $\eta$ (eta) rappresenta il **Learning Rate** (tasso di apprendimento). Regola la grandezza del "passo" che facciamo lungo la discesa. Se è troppo grande rischiamo di scavalcare il minimo; se è troppo piccolo, l'addestramento impiegherà giorni. Anche per determinare il learning rate correttamente esiste un modo.
+
+### La Chain Rule (Regola della Catena)
+
+Tecnicamente, per aggiornare un singolo peso $w_j$, vogliamo calcolare la derivata parziale del costo rispetto a quel peso:
+
+$$\frac{\partial J(\mathbf{W})}{\partial w_j}$$
+
+In una rete neurale profonda (Deep Learning), dove l'input attraversa molti strati nidificati prima di generare l'output, calcolare questa derivata direttamente è impossibile. Per farlo, usiamo la **Chain Rule** (Regola della Catena) del calcolo infinitesimale.
+
+Partiamo dall'errore generato sull'output finale e propaghiamo l'informazione all'indietro (*Backpropagation*), strato dopo strato. Ad esempio, la variazione dell'errore rispetto al peso del primo strato ($w_1$) si scompone nel prodotto delle variazioni locali:
+
+$$\frac{\partial J(\mathbf{W})}{\partial w_1} = \frac{\partial J(\mathbf{W})}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z_1} \cdot \frac{\partial z_1}{\partial w_1}$$
+
+
+
+### Spiegazione dei fattori:
+1. $\frac{\partial J(\mathbf{W})}{\partial \hat{y}}$: Quanto varia l'errore globale al variare della predizione finale della rete.
+2. $\frac{\partial \hat{y}}{\partial z_1}$: Quanto varia l'output del neurone rispetto al suo potenziale di attivazione interno ($z_1$).
+3. $\frac{\partial z_1}{\partial w_1}$: Quanto varia il potenziale interno al variare del peso specifico $w_1$ (che dipende direttamente dall'input $x$).
+
+Questo calcolo, ripetuto a ritroso per ogni singolo peso della rete, ci dice con precisione millimetrica in quale direzione "spostare" i miliardi di pesi del modello per scendere lungo la valle dell'errore e avvicinarci all'obiettivo di ottimizzazione.
+
+### E' difficile ottimizzare la Loss?
+Ottimizzare la Loss function può essere molto complesso.
+
+Quello che abbiamo capito, è che l'ottimizzazione della Loss avviene attraverso la discesa del gradiente. Ma come facciamo in modo di scendere in maniera intelligente?
+
+Dobbiamo stare attenti al Learning Rate, il termine $\eta$.
+- Se scegliamo un Learning Rate troppo piccolo, convergeremo troppo lentamente al minimo, e resteremo bloccati probabilmente in un falso minimo (il learning rate è praticamente la grandezza del salto che vogliamo compiere sulla nostra funzione per capire se il punto in cui atterriamo può essere il minimo oppure no);
+- Se lo scegliamo troppo alto, e quindi siamo predisposti ad un salto gigante, probabilmente finiremo per divergere più che convergere. Rischiamo di far esplodere il modello.
+- Learning rate adattivi: invece di un LR fisso, facciamo in modo di variarlo basandosi sulla pendenza del terreno (della funzione) e sulla velocità con cui stiamo imparando.
+
+#### Quali sono le idee?
+1. Proviamo diversi learning rates e vediamo quali funzionano meglio;
+2. utilizziamo il learning rate adattivo di cui abbiamo appena parlato.
+
+Quindi il LR non sarà più fisso ma dipenderà da diversi fattori, come:
+- quanto è largo il gradiente;
+- quanto stiamo imparando velocemente;
+- la size di alcuni pesi particolari;
+- ...
+
+Di seguito una serie di algoritmi di discesa del gradiente, presenti su TensorFlow e PyTorch:
+- SGD
+- Adam
+- Adadelta
+- Adagrad
+- RMSProp
+
+## Mini-Batches e SGD
+Calcolare il gradiente su milioni di dati è lentissimo. Per questo usiamo lo Stochastic Gradient Descent (SGD) su piccoli gruppi di dati chiamati Mini-batches, un insieme di punti B:
+- Velocità: calcoli più rapidi che sfruttano il parallelismo delle GPU
+- Regolarizzazione: il "rumore" introdotto dal calcolare il gradiente solo su pochi esempi aiuta la rete a non bloccarsi in minimi locali poco profondi.
+
+L'obiettivo dell'algoritmo è navigare la superficie matematica dell'errore per trovare la combinazione ottima di pesi $\mathbf{W}^*$ che minimizza il costo globale, aggiornando i parametri a piccoli passi (Batch).
+
+
+#### Inizializzazione dei pesi
+$$\mathbf{W} \sim \mathcal{N}(0, \sigma^2)$$
+L'algoritmo inizia assegnando ai pesi dei valori casuali estratti da una distribuzione normale con media 0 e una piccola deviazione standard $\sigma^2$ (ad esempio $\sigma = 0.02$). Questo serve a rompere la simmetria dei neuroni e permettere l'inizio dell'apprendimento.
+
+#### Loop fino alla convergenza
+Il processo entra in un ciclo iterativo che si ripete finché l'errore non si stabilizza vicino al minimo globale.
+
+#### Campionamento del Mini Batch
+Invece di elaborare tutti gli $n$ campioni del dataset, l'algoritmo estrae in modo casuale un piccolo blocchetto di dati composto da $B$ elementi (chiamato *Batch Size*, tipicamente 32, 64 o 128 campioni).
+
+#### Calcolo del gradiente locale
+$$\frac{\partial J(\mathbf{W})}{\partial \mathbf{W}} = \frac{1}{B} \sum_{k=1}^{B} \frac{\partial J_k(\mathbf{W})}{\partial \mathbf{W}}$$
+La rete calcola la derivata parziale della funzione di costo rispetto ai pesi ($\frac{\partial J}{\partial \mathbf{W}}$) facendo la media dei gradienti calcolati esclusivamente sui $B$ elementi del mini-batch corrente. 
+* **Vantaggio:** Questo calcolo è estremamente veloce da eseguire sulla memoria della GPU/CPU rispetto al gradiente calcolato sull'intero dataset, garantendo un'apprendimento dinamico e reattivo.
+
+#### Aggiornamento dei pesi
+$$\mathbf{W} \leftarrow \mathbf{W} - \eta \frac{\partial J(\mathbf{W})}{\partial \mathbf{W}}$$
+I pesi attuali vengono modificati sottraendo il gradiente calcolato nel passo precedente, moltiplicato per il **Learning Rate**.
+Il segno meno ($-$) è fondamentale: poiché il gradiente punta verso la direzione di massimo aumento dell'errore come abbiamo già detto, quindi muoversi nella direzione opposta garantisce di scendere lungo la valle verso il punto di errore minimo.
+
+#### Ritorno dei Pesi Ottimali
+Quando l'algoritmo converge e la Loss smette di ridursi, il ciclo si interrompe e il modello restituisce la matrice finale dei pesi ottimizzati ($\mathbf{W}^*$).
+
+Per capire l'esigenza ingegneristica dei mini-batch, immaginiamo uno studente che deve studiare un manuale d'esame pesantissimo di **1.000 pagine** (il nostro intero dataset). L'obiettivo dello studente è capire i concetti e correggere il proprio metodo di studio (aggiornare i pesi $\mathbf{W}$) per prendere 30 (minimizzare la Loss).
+
+Ci sono tre modi in cui lo studente può approcciare lo studio:
+
+#### L'approccio unico Batch
+Lo studente decide di leggere **tutte e 1.000 le pagine di fila** senza mai fermarsi, senza farsi domande e senza fare quiz di autovalutazione. Solo dopo aver chiuso l'ultima pagina, si siede, fa un bilancio totale di cosa ha capito e corregge il suo metodo di studio.
+* **Il problema:** È un processo lentissimo. Lo studente impiega settimane prima di fare un singolo aggiustamento. Inoltre, la sua memoria (la RAM del computer) viene sovraccaricata da una quantità enorme di informazioni concentrate in un colpo solo.
+
+#### L'approccio Stocastico (SGD)
+Lo studente legge **una singola riga della prima pagina** e si ferma immediatamente per fare un test. Se sbaglia il test su quella riga, stravolge completamente il suo metodo di studio. Poi legge la seconda riga, si ferma, rifà il test, cambia di nuovo metodo, e così via per 1.000 pagine.
+* **Il problema:** Questo approccio è frenetico e caotico. Il metodo di studio cambia continuamente direzione a ogni singola riga leggendo dettagli insignificanti o eccezioni, creando un percorso spezzettato che oscilla continuamente senza mai trovare una strategia di studio equilibrata.
+
+#### L'approccio Mini-Batch, ovvero la via di mezzo
+Lo studente trova il compromesso perfetto: divide il libro in **capitoletti da 32 o 64 pagine** (la nostra *Batch Size*, $B$). 
+Legge il primo blocchetto di pagine, si ferma, fa un quiz su quel capitolo e, in base al voto medio ottenuto, corregge e affina il suo metodo di studio. Poi passa al blocchetto successivo.
+
+# Overfitting e Regolarizzazione
+Uno dei problemi più comuni nell'addestramento di queste reti neurali è l'Overfitting: la rete impara a memoria i dati di addestramento (rumore incluso) ma fallisce su dati nuovi.
+
+In realtà i problemi sono 2:
+- Overfitting: di cui abbiamo appena parlato, la rete impara a memoria e non riesce a generalizzare, quindi a rispondere correttamente a domande che non ha imparato a memoria;
+- Underfitting: quando il modello non ha la capacità di imparare bene dai dati, l'esempio che avevamo visto all'inizio del file che riguardava il bianco e nero. Il modello è troppo semplice, non riesce a cogliere la complessità dei dati e prende decisioni troppo nette e grossolane, esattamente come il perceptron senza bias che vede bianco e nero.
+
+Bisogna quindi avere un fitting corretto, ovvero trovare il giusto compromesso tra semplicità e complessità.
+
+Come si fa? Con la regolarizzazione.
+La regolarizzazione è un insieme di tecniche che penalizzano la complessità del modello durante l'addestramento, impedendogli di memorizzare i dati di training e forzandolo a imparare pattern generalizzabili.
+
+Vediamo alcune tecniche di regolarizzazione principali:
+- Dropout;
+- Early Stopping.
+Possono essere anche usate in combinazione.
+
+Il ***Dropout*** è una tecnica che consiste in: durante il training, spegniamo casualmente una percentuale di neuroni (es. il 50%) in ogni passaggio
+Perché funziona? Costringe la rete a non fare affidamento su un singolo neurone specifico, distribuendo la conoscenza in modo più robusto su tutta l'architettura. Riduce l'overfitting proprio perché fa in modo che un neurone non si fidi ciecamente di quello che gli dicono gli altri, ma inizia a comprendere anche lui.
+
+**Perché funziona?** Immaginiamo un team di sviluppo software aziendale composto da 5 persone in cui una sola persona (il "neurone genio") fa tutto il lavoro e gli altri 4 si limitano a guardare. Se il genio si ammala, il team fallisce (Overfitting su un unico elemento).
+Il Dropout costringe l'azienda a mandare in ferie forzate e casuali i dipendenti ogni giorno. Se il genio oggi non c'è, gli altri 4 sono costretti a imparare a programmare e a collaborare tra loro. In questo modo, la conoscenza si distribuisce in modo robusto su tutta l'architettura: la rete impara a sopravvivere e a performare indipendentemente dalla presenza di un singolo neurone specifico.
+
+***L'Early Stopping***: monitoriamo l'errore su un set di dati che la rete non ha mai visto (Testing set). Quando l'errore sul training scende ma quello sul testing inizia a risalire, fermiamo tutto: la rete sta iniziando a memorizzare invece di capire.
+
+**Perché funziona?** Immagina uno studente dell'Unical che si esercita per settimane sugli stessi identici compiti degli esami degli anni passati. 
+Nei primi giorni, lo studente capisce le regole generali della materia (la Loss scende sia sui compiti passati che su eventuali domande nuove poste dal professore).
+Dopo la terza settimana di studio matto e disperatissimo, lo studente inizia a ricordarsi a memoria che *"Se la domanda ha la parola X, allora la risposta è la C"*. Ha smesso di ragionare. Se il professore all'esame cambia una singola virgola, lo studente fallisce.
+L'Early Stopping agisce come un timer che toglie il libro dalle mani dello studente non appena si accorge che sta iniziando a imparare a memoria le risposte dei vecchi compiti anziché studiare la teoria.
+
+**Abbiamo dunque visto:**
+- il concetto di Perceptron (Percettone);
+- il concetto di rete neurale: come passiamo dal percettone a una rete e l'ottimizzazione tramite back propagation;
+- l'addestramento della rete neurale: addestramento adattivo, batching e regolarizzazione.
