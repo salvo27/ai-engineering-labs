@@ -125,3 +125,27 @@ Per capire questo concetto pensiamo a dei mattoncini lego:
 - I **layer finali** uniscono le stanze per dare la forma finale al castello.
 
 La potenza di una Deep Neural Network, è quella di apprendere una gerarchia di caratteristiche attraverso queste trasformazioni nidificate. Più la rete è profonda, più è complessa la funzione che può approssimare.
+
+# Il processo di apprendimento: Loss e Ottimizzazione
+Addestrare una rete significa trovare i pesi W che minimizzano l'errore.
+Ma come quantifichiamo l'errore?
+Andiamo ad analizzare la funzione Loss:
+$\mathcal{L}(\hat{y}, y)$
+
+Questa funzione misura quanto $\hat{y}$ è lontana da $y$. Ma come è composta questa Loss function?
+
+- Mean Squared Error (MSE): Usata per la regressione (es. predire il prezzo di una casa). Si calcola il quadrato della differenza tra predetto e reale;
+
+- Binary Cross Entropy: Usata per la classificazione (es. "Sì" o "No"). Misura la distanza tra due distribuzioni di probabilità;
+
+$$J(W) = \frac{1}{n} \sum_{i=1}^{n} \mathcal{L}\left(f\left(x^{(i)}; W\right), y^{(i)}\right)$$
+
+$J(W)$ misura la Loss media sulla nostra rete neurale, 1/n serve a normalizzarla, per ottenere il valore medio di Loss della rete. Senza 1/n sarebbe la Loss totale sulla nostra rete.
+
+Quando applichiamo la **Mean Squared Error**, l'obiettivo della rete è predire un valore numerico continuo. Vogliamo quantificare di quanto il nostro risultato numerico si discosta da quello reale.
+
+Immaginiamo di voler predire il voto esatto che uno studente prenderà all'esame (un valore da 18 a 30). Se la rete predice $24$ ($\hat{y}$) ma lo studente prende $28$ ($y$), la MSE misura la distanza lineare tra questi due numeri reali, la eleva al quadrato per penalizzare l'errore e dice alla rete come correggersi.
+
+Quando applichiamo la **Binary Cross-Entropy**, l'obiettivo cambia completamente: non cerchiamo un numero qualunque, ma una probabilità strettamente compresa tra 0 e 1. Vogliamo misurare di quanto si discosta la certezza calcolata dalla rete rispetto alla realtà dei fatti.
+
+Immagina di voler predire se lo studente supererà o meno l'esame (un problema binario: 1 = Passato, 0 = Bocciato). Se la rete sputa fuori $0.95$ ($\hat{y}$), sta dicendo che lo studente ha il 95% di probabilità di passare. Se lo studente viene inaspettatamente bocciato ($y = 0$), la BCE calcola quanto la rete è stata "punita" per aver dato una probabilità così alta a un evento che si è rivelato falso.
