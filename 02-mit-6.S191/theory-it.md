@@ -18,7 +18,7 @@ Le architetture per costruire delle reti neurali sequenziali sono 4:
 A questo punto, dobbiamo fare delle considerazioni sui vecchi modelli, che non possiamo più utilizzare quando entra in gioco il tempo.
 Dobbiamo considerare infatti i singoli passi temporali (time steps).
 
-Per superare i limiti delle reti classiche e permettere all'input di dipendere dal passato e dallo stato precedente di sé stesso, nascono le Recurrent Neural Networks (RNNs).
+Per superare i limiti delle reti classiche e permettere allo stato interno di dipendere dal passato e dallo stato precedente di sé stesso, nascono le Recurrent Neural Networks (RNNs).
 
 Perché il perceptron e la rete Feed-forward (o dense layer, multi layer) non vanno più bene?
 - Flusso unidirezionale(assenza di cicli): Nelle reti classiche l'informazione viaggia in una sola direzione. L'input entra a sinistra e l'informazione si sposta verso destra fino all'output, senza alcun ciclo all'indietro. Ad esempio: una rete che classifica immagini di radiografie: riceve i pixel, li elabora strato per strato, e produce "tumore o non tumore". L'informazione va solo in avanti, non c'è nessun motivo per cui guardare indietro, ogni immagine è indipendente.
@@ -47,7 +47,7 @@ $$h_t = f_W(h_{t-1}, x_t)$$
 Ovvero, abbiamo appena descritto matematicamente la memoria. Ma perché $$f_W$$?
 Quella $W$ rappresenta i pesi della rete neurale che definiscono la funzione stessa, quindi è una funzione dei pesi. Non sono i pesi a cambiare, ma gli input ad ogni singolo passo temporale. I pesi (parametri) rimangono sempre uguali mentre la rete legge la sequenza passo passo, cambieranno solo quando andremo a fare la backpropagation.
 
-Il momento della sequenza è il Forward, quello della backpropagation è il Backward.
+Il momento in cui elaboriamo in maniera sequenziale è il Forward, quello della backpropagation è il Backward.
 
 A ogni singolo istante $t$ (quando la rete legge una nuova parola, un nuovo frame di un video o un nuovo millisecondo di un audio), la rete prende la vecchia lavagna ($h_{t-1}$), ci aggiunge le informazioni del presente ($x_t$), cancella i dettagli inutili e scrive la nuova versione della lavagna ($h_t$).
 
@@ -55,7 +55,11 @@ Le RNN hanno uno stato, $h_t$, che viene aggiornato a ogni passo temporale mentr
 
 ## Come funziona la rete all'istante t?
 
-1. La cella riceve due vettori dall'esterno:$x_t$ (Input Vector): Il dato del presente (es. i numeri che rappresentano la parola attuale).$h_{t-1}$ (Old Hidden State): Il vettore che arriva dal passato, contenente la memoria dei passi precedenti.
+1. La cella riceve due vettori dall'esterno:
+
+    $x_t$ (Input Vector): Il dato del presente (es. i numeri che rappresentano la parola attuale).
+
+    $h_{t-1}$ (Old Hidden State): Il vettore che arriva dal passato, contenente la memoria dei passi precedenti.
 
 2. La cella prende questi due vettori e li dà in pasto alla formula di aggiornamento. 
 Moltiplica l'input per i suoi pesi ($W_{xh} \cdot x_t$).
@@ -121,7 +125,7 @@ output: [1, 2, 3, 4, 5, 6, 7, 8];
 
 - **one-hot embedding**: ad ogni numero associamo un vettore:
 Questo strato sostituisce ogni ID intero con un vettore di zeri tranne
-output per la parola "cane" ($x_7$): [0, 0, 0, 0, 0, 0, 1]
+l'output per la parola "cane" ($x_7$): [0, 0, 0, 0, 0, 0, 1]
 
 Al posto del one-hot embedding avremmo potuto usare il learned embedding, una sorta di mappa per capire quanto delle parole sono correlate tra loro: ad esempio le parole che hanno relazioni semantiche strette o correlate tra loro (es. "cane", "gatto", "cucciolo") avranno vettori con valori numerici molto simili, posizionandosi vicine nello spazio geometrico tracciato dalla rete.
 
@@ -209,16 +213,23 @@ Prima di effettuare qualsiasi calcolo di attenzione, dobbiamo risolvere il probl
 
 Prendiamo la matrice dei dati in input, dove ogni riga è il *learned embedding* semantico di una parola, e ci **sommiamo** il **Positional Embedding**:
 
+Sono due vettori distinti di numeri, separati all'inizio, che poi vengono fusi insieme. Il primo vettore contiene i valori che rappresentano la semantica della parola, il secondo vettore contiene i valori che rappresentano la posizione della parola all'interno della frase.
+
 $$\vec{x}_{\text{finale}} = \vec{x}_{\text{semantic}} + \vec{x}_{\text{position}}$$
+
+ad esempio: 
+$$\vec{x}_{\text{semantic}} = [0.25, -0.87, 0.41, 0.12]$$
+$$\vec{x}_{\text{position}} = [0.14, 0.95, -0.32, 0.88]$$
 
 Questo "timbro" posizionale viene applicato **una sola volta all'inizio**. Poiché le matrici Query ($Q$), Key ($K$) e Value ($V$) verranno generate successivamente partendo da questo unico input unificato, tutte e tre erediteranno automaticamente le informazioni sull'ordine delle parole.
 
 
-
----
-
 ### 2. Sdoppiamento dei Ruoli (Query, Key, Value)
-La matrice di input (ora arricchita con le posizioni) viene moltiplicata per tre matrici di pesi differenti ($W_Q, W_K, W_V$) apprese durante l'addestramento. Questa operazione proietta ogni parola in tre vettori con ruoli ben definiti che simulano un sistema di ricerca relazionale:
+La matrice di input (ora arricchita con le posizioni) viene moltiplicata per tre matrici di pesi differenti ($W_Q, W_K, W_V$) apprese durante l'addestramento.
+
+A cosa servono questi pesi? All'inizio, la nostra parola ha un unico vettore ($\vec{x}_{\text{finale}}$) che fonde insieme significato e posizione. Tuttavia, una parola non può fare tutto insieme: non può proporsi come "soggetto", cercare un "oggetto" e contemporaneamente fornire il suo significato profondo usando gli stessi identici numeri.
+
+Questa operazione proietta ogni parola in tre vettori con ruoli ben definiti che simulano un sistema di ricerca relazionale:
 
 * **Query ($Q$) $\rightarrow$ *"Cosa sto cercando?"***: Rappresenta la parola attuale che interroga il resto della frase (la stringa digitata nella barra di ricerca).
 * **Key ($K$) $\rightarrow$ *"Chi sono e cosa offro?"***: Rappresenta il tag di indicizzazione e le caratteristiche di ogni parola, usato per farsi trovare dalle altre (l'indice o il titolo nel database).
@@ -226,28 +237,81 @@ La matrice di input (ora arricchita con le posizioni) viene moltiplicata per tre
 
 
 
----
-
 ### 3. Calcolo dei Pesi di Attenzione (The Match)
 Per capire quali parti dell'input sono correlate tra loro, la rete calcola la somiglianza matematica tra ogni Query e tutte le Key disponibili sul tavolo tramite un prodotto scalare ($Q \cdot K^T$).
+
+La somiglianza sarebbe la probabilità che questa parola sia correlata a quella della K, non che sia uguale. La somiglianza geometrica nel prodotto scalare indica la correlazione logica, grammaticale o semantica, ovvero quanto due parole siano necessarie l'una all'altra per completare il senso della frase.
 
 1. I punteggi grezzi ottenuti vengono divisi per un fattore di scala ($\sqrt{d_k}$, dove $d_k$ è la dimensione dei vettori delle chiavi) per stabilizzare i calcoli ed evitare che i gradienti svaniscano durante la backpropagation.
 2. I risultati scalati vengono dati in pasto a una funzione **Softmax**.
 
 La Softmax trasforma i punteggi in una vera e propria classifica di percentuali (valori strettamente compresi tra $0$ e $1$, la cui somma fa sempre $1$). Questi sono gli **Attention Weights** (i pesi di attenzione), che indicano numericamente quanta rilevanza ha una determinata parola rispetto a un'altra nel contesto attuale.
 
+Per capire come la matematica crei la mappa della rilevanza, mettiamoci nei panni del Transformer mentre analizza la frase:
 
+**"Il programmatore scrive codice."**
 
----
+Vogliamo calcolare l'attenzione rispetto alla parola **scrive** (il verbo),per capire quali altre parole della frase sono fondamentali per comprenderne il contesto.
+
+Ipotizziamo che la dimensione dei vettori delle chiavi ($d_k$) scelta dai progettisti del modello sia **64**. Di conseguenza, il nostro fattore di scala sarà:
+
+$$\sqrt{d_k} = \sqrt{64} = \mathbf{8}$$
+
+Ecco i tre passaggi esatti che la GPU esegue in parallelo:
+
+### Passo A: I Punteggi Grezzi (Il prodotto scalare $Q \cdot K^T$)
+La Query della parola *scrive* si scontra tramite un prodotto scalare con le Key di tutte le parole della frase. Poiché i vettori sono ad altissima dimensione (64 elementi), le moltiplicazioni geometriche sommano molti numeri tra loro, generando dei punteggi grezzi alti e molto distanti tra loro:
+
+* `scrive` $\times$ `Il` $\rightarrow$ **`8.0`** *(Basso: un articolo non dà contesto al verbo)*
+* `scrive` $\times$ `programmatore` $\rightarrow$ **`56.0`** *(Altissimo! È il soggetto che compie l'azione)*
+* `scrive` $\times$ `scrive` $\rightarrow$ **`24.0`** *(Medio: l'auto-riflessione della parola su se stessa)*
+* `scrive` $\times$ `codice` $\rightarrow$ **`40.0`** *(Molto alto! È l'oggetto, ciò che viene scritto)*
+
+### Passo B: La Scalatura
+Se dessimo in pasto alla Softmax un numero enorme come `56.0`, la funzione esponenziale della Softmax ($e^{56}$) schizzerebbe a un valore quasi infinito, azzerando i gradienti di tutte le altre parole e mandando in tilt l'addestramento (*Vanishing Gradient*).
+
+Per stabilizzare i calcoli, la rete divide tutti i punteggi per il fattore di scala, che in questo caso è **8**:
+
+* **Il** $\rightarrow$ $8.0 / 8 = \mathbf{1.0}$
+* **programmatore** $\rightarrow$ $56.0 / 8 = \mathbf{7.0}$
+* **scrive** $\rightarrow$ $24.0 / 8 = \mathbf{3.0}$
+* **codice** $\rightarrow$ $40.0 / 8 = \mathbf{5.0}$
+
+I calcoli ora sono ridimensionati, protetti dalle deformazioni matematiche e pronti per il verdetto finale.
+
+### Passo C: La Softmax 
+La funzione Softmax prende i numeri scalati `[1.0, 7.0, 3.0, 5.0]`, ne calcola l'esponenziale e li normalizza, schiacciandoli in un intervallo tra $0$ e $1$ in modo che la loro somma totale faccia esattamente **1** (ovvero il **100%**).
+
+I punteggi geometrici si trasformano ufficialmente nei veri **Attention Weights** (i pesi di attenzione):
+
+| Parola (Key) | Calcolo Softmax | Peso di Attenzione (Rilevanza) | Cosa ha capito il Transformer |
+| :--- | :--- | :--- | :--- |
+| **Il** | $e^1 / \text{totale}$ | **0.2%** (`0.002`) | È un articolo, contesto trascurabile per il verbo. |
+| **programmatore** | $e^7 / \text{totale}$ | **84.3%** (`0.843`) | **Soggetto.** È l'informazione cruciale per dare un senso a "scrive". |
+| **scrive** | $e^3 / \text{totale}$ | **1.5%** (`0.015`) | Mantiene una minima quota di attenzione su se stesso. |
+| **codice** | $e^5 / \text{totale}$ | **14.0%** (`0.140`) | **Oggetto.** È la seconda informazione fondamentale della frase. |
+| **SOMMA** | | **100%** (`1.00`) | |
+
 
 ### 4. Estrazione del Contenuto (High Attention Extraction)
 Una volta identificati i pesi, passiamo all'estrazione vera e propria descritta nell'intuizione classica della ricerca. Moltiplichiamo la matrice dei pesi di attenzione ottenuti dalla Softmax per la matrice dei **Value ($V$)**.
 
 Le parole che hanno ottenuto un punteggio di attenzione alto (*high attention scores*) vedranno il proprio Value estratto quasi interamente e trasmesso in avanti agli strati successivi. Al contrario, le parti con punteggi vicini a zero verranno filtrate, attenuate e ignorate dal modello. 
 
-Il risultato finale è un nuovo vettore di output in cui la parola iniziale non è più isolata, ma è stata **arricchita da tutto il contesto globale** della frase.
+### Passo D: L'estrazione Matematica
+Abbiamo i nostri pesi di attenzione per la parola *"scrive"* calcolati al Passo C. Ora la GPU prende i vettori **Value ($V$)** di ogni parola (che contengono il patrimonio informativo profondo) e applica una media ponderata:
 
----
+$$\vec{x}_{\text{output\_scrive}} = (0.002 \cdot \vec{V}_{\text{Il}}) + (0.843 \cdot \vec{V}_{\text{programmatore}}) + (0.015 \cdot \vec{V}_{\text{scrive}}) + (0.140 \cdot \vec{V}_{\text{codice}})$$
+
+Cosa contiene, a livello di significato, questo nuovo vettore finale che la rete ha appena generato per la parola *"scrive"*?
+
+* Il contenuto di **"Il"** è stato quasi del tutto filtrato e azzerato ($0.2\%$).
+* Il contenuto originario di **"scrive"** conserva solo una piccolissima quota di auto-riflessione ($1.5\%$).
+* Il vettore è ora letteralmente **inondato** dall'informazione semantica profonda di **"programmatore"** ($84.3\%$) e di **"codice"** ($14.0\%$).
+
+
+
+Il risultato finale è un nuovo vettore di output in cui la parola iniziale non è più isolata, ma è stata **arricchita da tutto il contesto globale** della frase. Il verbo *"scrive"* ora non è più un'azione astratta: porta matematicamente dentro di sé l'informazione di *chi* sta compiendo l'azione e di *cosa* viene effettivamente scritto.
 
 ## La formula unificata dell'Attention Search
 
@@ -263,3 +327,36 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 **Questo è il blocco principale per costruire l'architettursa dei Transformer.**
 
 Questo approccio è incredibilmente parallelizzabile.
+
+## Il Blocco di Calcolo: La "Self-Attention Head"
+
+Tutte queste operazioni matematiche si collegano in modo sequenziale all'interno di un unico modulo hardware/software chiamato **Self-Attention Head**.
+
+Graficamente, il flusso dei dati all'interno di una singola testa segue questa struttura:
+1. L'input (arricchito dal *Positional Encoding*) entra nel blocco.
+2. Viene sdoppiato attraverso tre strati lineari paralleli per generare le tre matrici **Query**, **Key** e **Value**.
+3. Le matrici $Q$ e $K$ subiscono il prodotto scalare ($MatMul$) e vengono scalate ($\sqrt{d_k}$).
+4. Viene applicata la **Softmax** per ottenere la matrice dei pesi.
+5. Il risultato viene moltiplicato ($MatMul$) per la matrice $V$, sputando fuori il vettore finale arricchito dal contesto globale.
+
+Questa intera struttura rappresenta il blocco fondamentale dell'architettura Transformer. 
+Non ci sono cicli temporali, non c'è ricorrenza: l'intera frase viene elaborata in un colpo solo.
+
+## Multi-Head Attention
+
+Abbiamo un limite cruciale nella singola testa: una sola Attention Head può concentrarsi su una sola relazione alla volta. Ad esempio, nella frase "Ha lanciato la pallina da tennis per battere", la parola *"battere"* deve legarsi sia a *"tennis"* sia a *"lanciato"*.
+
+Per permettere alla rete di guardare la frase da più punti di vista contemporaneamente, i Transformer applicano la **Multi-Head Attention**, ovvero fanno lavorare più teste di calcolo **in parallelo**.
+
+
+* **Testa 1** si concentra sulle relazioni sintattiche e grammaticali (soggetto $\rightarrow$ Verbo).
+* **Testa 2** si concentra sulle relazioni semantiche a lungo termine (contesto dello spazio).
+* **Testa 3** analizza la struttura dei complementi o della punteggiatura.
+
+## Campi di Applicazione (Self-Attention Applied)
+
+Questo meccanismo di calcolo spaziale parallelo si è rivelato così potente da uscire dai confini del testo, rivoluzionando qualsiasi dato che possa essere espresso come una sequenza:
+
+* **Language Processing (NLP):** È la base di modelli come BERT, GPT e di tutti i moderni Large Language Models (LLM).
+* **Computer Vision:** Nei *Vision Transformers (ViT)*, le immagini vengono divise in piccoli quadratini (*patch*) trattati esattamente come se fossero parole di una frase.
+* **Sequenze Biologiche:** Modelli come *AlphaFold* sfruttano la Self-Attention per mappare le interazioni tra amminoacidi e predire il ripiegamento tridimensionale delle proteine e del DNA.
