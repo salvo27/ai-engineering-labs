@@ -307,7 +307,9 @@ Le parole che hanno ottenuto un punteggio di attenzione alto (*high attention sc
 ### Passo D: L'estrazione Matematica
 Abbiamo i nostri pesi di attenzione per la parola *"scrive"* calcolati al Passo C. Ora la GPU prende i vettori **Value ($V$)** di ogni parola (che contengono il patrimonio informativo profondo) e applica una media ponderata:
 
-$$\vec{x}_{\text{output\_scrive}} = (0.002 \cdot \vec{V}_{\text{Il}}) + (0.843 \cdot \vec{V}_{\text{programmatore}}) + (0.015 \cdot \vec{V}_{\text{scrive}}) + (0.140 \cdot \vec{V}_{\text{codice}})$$
+$$
+\vec{x}_{\text{output}_{\text{scrive}}} = (0.002 \cdot \vec{V}_{\text{Il}}) + (0.843 \cdot \vec{V}_{\text{programmatore}}) + (0.015 \cdot \vec{V}_{\text{scrive}}) + (0.140 \cdot \vec{V}_{\text{codice}})
+$$
 
 Cosa contiene, a livello di significato, questo nuovo vettore finale che la rete ha appena generato per la parola *"scrive"*?
 
