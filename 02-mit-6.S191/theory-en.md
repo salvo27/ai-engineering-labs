@@ -218,8 +218,13 @@ These are two distinct vectors of numbers, separate at first, which are then mer
 $$\vec{x}_{\text{final}} = \vec{x}_{\text{semantic}} + \vec{x}_{\text{position}}$$
 
 for example:
-$$\vec{x}_{\text{semantic}} = [0.25, -0.87, 0.41, 0.12]$$
-$$\vec{x}_{\text{position}} = [0.14, 0.95, -0.32, 0.88]$$
+$$
+\vec{x}_{\text{semantic}} = [0.25, -0.87, 0.41, 0.12]
+$$
+
+$$
+\vec{x}_{\text{position}} = [0.14, 0.95, -0.32, 0.88]
+$$
 
 This positional "stamp" is applied **once only at the beginning**. Since the Query ($Q$), Key ($K$), and Value ($V$) matrices will subsequently be generated from this single unified input, all three automatically inherit the information about word order.
 

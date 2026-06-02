@@ -218,8 +218,13 @@ Sono due vettori distinti di numeri, separati all'inizio, che poi vengono fusi i
 $$\vec{x}_{\text{finale}} = \vec{x}_{\text{semantic}} + \vec{x}_{\text{position}}$$
 
 ad esempio: 
-$$\vec{x}_{\text{semantic}} = [0.25, -0.87, 0.41, 0.12]$$
-$$\vec{x}_{\text{position}} = [0.14, 0.95, -0.32, 0.88]$$
+$$
+\vec{x}_{\text{semantic}} = [0.25, -0.87, 0.41, 0.12]
+$$
+
+$$
+\vec{x}_{\text{position}} = [0.14, 0.95, -0.32, 0.88]
+$$
 
 Questo "timbro" posizionale viene applicato **una sola volta all'inizio**. Poiché le matrici Query ($Q$), Key ($K$) e Value ($V$) verranno generate successivamente partendo da questo unico input unificato, tutte e tre erediteranno automaticamente le informazioni sull'ordine delle parole.
 
