@@ -218,6 +218,7 @@ Sono due vettori distinti di numeri, separati all'inizio, che poi vengono fusi i
 $$\vec{x}_{\text{finale}} = \vec{x}_{\text{semantic}} + \vec{x}_{\text{position}}$$
 
 ad esempio: 
+
 $$
 \vec{x}_{\text{semantic}} = [0.25, -0.87, 0.41, 0.12]
 $$

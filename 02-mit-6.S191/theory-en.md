@@ -218,6 +218,7 @@ These are two distinct vectors of numbers, separate at first, which are then mer
 $$\vec{x}_{\text{final}} = \vec{x}_{\text{semantic}} + \vec{x}_{\text{position}}$$
 
 for example:
+
 $$
 \vec{x}_{\text{semantic}} = [0.25, -0.87, 0.41, 0.12]
 $$
