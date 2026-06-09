@@ -100,7 +100,7 @@ Applicheremo a questo punto un bias, sommato al risultato della moltiplicazione,
 Come dicevamo precedentemente, invece di schiacciare l'input e processarlo, ci concentreremo su filtri, più piccoli, applicando la stessa sequenza di operazioni: prodotto elemento per elemento tra il filtro e la porzione di immagine, somma dei risultati, aggiunta del bias e applicazione di una funzione di attivazione non lineare.
 
 ### Caso di studio
-![X](../assets/x.png)
+![X](../../assets/deep-learning-intro-course/03/x.png)
 
 Immaginiamo di voler classificare, quindi riconoscere, se un'immagine è una X oppure no.
 
@@ -111,13 +111,13 @@ Quello che possiamo notare subito, è che per classificare, non possiamo sicuram
 Dobbiamo quindi farlo utilizzando un approccio basato sulle caratteristiche.
 Ci concentreremo quindi sulle porzioni.
 
-![X Comparison](../assets/x_comparison.png)
+![X Comparison](../../assets/deep-learning-intro-course/03//x_comparison.png)
 
 Anche se queste immagini sono differenti pixel per pixel, andandole ad osservarle meglio, condividono lo stesso pattern, hanno le stesse caratteristiche.
 
 Ogni filtro è una matrice di pesi delle stesse dimensioni di una porzione dell'immagine: viene sovrapposto ad essa per rilevare una specifica caratteristica, come una diagonale o una croce. Andiamo a definire i nostri filtri, necessari per capire se la nostra immagine è una x:
 
-![X Filters](../assets/x_filters.png)
+![X Filters](../../assets/deep-learning-intro-course/03//x_filters.png)
 
 I nostri filtri sono 3: diagonale 1, una croce, e la diagonale 2.
 
@@ -125,7 +125,7 @@ A questo punto, quello che dobbiamo definire, è l'operazione che utlizzeremo pe
 
 L'operazione è chiamata convoluzione, che non è altro che una moltiplicazione elemento per elemento della porzione per il filtro.
 
-![X Convolution](../assets/x_convolution.png)
+![X Convolution](../../assets/deep-learning-intro-course/03//x_convolution.png)
 
 Nel nostro caso, da questa moltiplicazione, otteniamo 9 come risultato, significa che c'è un match perfetto tra la nostra porzione e il nostro filtro.
 
@@ -134,7 +134,7 @@ Numero molto negativo: pessimo match.
 
 Immaginiamo di voler applicare la convoluzone di una matrice 5x5 con un filtro 3x3, otterremo in output una matrice 3x3 (con stride = 1):
 
-![Convolution](../assets/convolution.png)
+![Convolution](../../assets/deep-learning-intro-course/03//convolution.png)
 
 praticamente per ogni porzione 3x3 definibile della nostra matrice, avremo un risultato nella feature map (il risultato delle operazioni di convoluzione).
 
@@ -153,7 +153,7 @@ Quindi la sovrapposizione non è un difetto, è una scelta progettuale: garantis
 
 Immaginiamo anora di creare noi i filtri, con i relativi pesi, e vediamo come filtri diversi possono produrre caratteristiche diverse, feature map diverse:
 
-![Feature Map](../assets/feature_map.png)
+![Feature Map](../../assets/deep-learning-intro-course/03//feature_map.png)
 
 Andiamo a vedere i risultati della convoluzione di questa immagine, applicando filtri diversi:
 - il primo filtro serve ad analizzare la nitidezza dell'immagine;
@@ -172,7 +172,7 @@ Prima di vedere le Convolutional Neural Networks, facciamo un breve recap, abbia
 ## Convolutional Neural Networks (CNNs)
 Andiamo a vedere come è fatta una CNN nel caso di classificazione di immagini:
 
-![CNN](../assets/cnn.png)
+![CNN](../../assets/deep-learning-intro-course/03//cnn.png)
 
 Il nostro obiettivo è di imparare le caratteristiche direttamente dalle nostre immagini, e vogliamo usare queste caratteristiche estratte, per effettuare delle classificazioni, in sintesi, estraiamo come deve essere un cavallo ad esempio, e poi usiamo queste caratteristiche estratte per rispondere a un problema di classificazione che ci chiede se l'immagine che diamo in input è un cavallo o no.
 
@@ -185,7 +185,7 @@ Il nostro obiettivo è quindi, allenare il nostro modello su un set di immagini,
 
 Per ogni neurone nell'hidden layer quindi, ci prendiamo gli input dalle porzioni (come dicevamo per ogni porzione un input), calcoliamo la somma pesata, applichiamo il bias.
 
-![Convolutional layers](../assets/conv_layers.png)
+![Convolutional layers](../../assets/deep-learning-intro-course/03//conv_layers.png)
 
 Il filtro è una piccola matrice di pesi, ad esempio 3x3. È lo strumento che la rete usa per cercare una caratteristica specifica nell'immagine, come un bordo verticale, una curva, o una macchia di colore.
 La feature map è il risultato di quel filtro applicato all'intera immagine: è una mappa che dice "in questa posizione ho trovato quella caratteristica, in quest'altra no". Un filtro produce sempre una feature map.
@@ -201,7 +201,7 @@ Esempio concreto. Immagina di voler riconoscere un gatto.
 
 Man mano che si va in profondità, le caratteristiche diventano combinazioni delle precedenti. Dal layer 1 con 32 tipi di bordi, il layer 2 deve cercare tutte le possibili combinazioni di quei bordi per formare forme. Il numero di combinazioni cresce molto rapidamente, quindi servono più filtri per coprirle tutte in modo adeguato.
 
-![Volume](../assets/cnn_volume.png)
+![Volume](../../assets/deep-learning-intro-course/03//cnn_volume.png)
 
 Ogni pezzo del nostro output volume è influenzato da un piccolo pezzo di porzione iniziale dell'input.
 
@@ -209,7 +209,7 @@ Una volta ottenuto questo volume, il prossimo step è quello di applicare la fun
 Come abbiamo già detto la più comune è la ReLU.
 Prende ogni valore negativo e lo fa diventare zero, e prende ogni valore positivo e lo fa restare tale, si comporta come identità nel caso di valori positivi.
 
-![ReLU](../assets/relu_cnn.png)
+![ReLU](../../assets/deep-learning-intro-course/03//relu_cnn.png)
 
 $$ g(z) = max(0, z) $$
 
@@ -222,7 +222,7 @@ Per capire meglio questo concetto, pensa al Pooling come a una lente che ci perm
 
 Dimensione relativa: Quando riduciamo la matrice, ogni singolo valore risultante "rappresenta" una porzione dell'immagine originale più ampia rispetto a prima.
 
-![Pooling](../assets/pooling_cnn.png)
+![Pooling](../../assets/deep-learning-intro-course/03//pooling_cnn.png)
 
 Invece di analizzare sempre i micro-dettagli, i neuroni negli strati successivi iniziano a vedere strutture più complesse. Riducendo la scala spaziale, la rete smette di concentrarsi sul "dove" esatto si trovi un pixel e inizia a capire "cosa" è presente in quell'area, passando dai semplici bordi a parti di oggetti più grandi.
 
@@ -240,12 +240,12 @@ Se usiamo finestre di Pooling troppo piccole (es. 1x1 o 2x2):
 
 Vediamo un esempio di CNN:
 
-![Example](../assets/cnn_example.png)
+![Example](../../assets/deep-learning-intro-course/03//cnn_example.png)
 
 ## CNN per classificare
 Una CNN per la classificazione si può idealmente dividere in due blocchi funzionali distinti, che lavorano in sequenza: 
 
-![Classification Example](../assets/cnn_classification_example.png)
+![Classification Example](../../assets/deep-learning-intro-course/03//cnn_classification_example.png)
 
 - **feature extractor**: questa è la parte convoluzionale della rete. È composta da una successione di blocchi [Convoluzione $\rightarrow$ ReLU $\rightarrow$ Pooling].
 La profondità di questa sezione (quanti strati impiliamo) dipende dalla complessità del compito. Più la rete è profonda, più le caratteristiche estratte diventano astratte: si passa da semplici bordi (strati iniziali) a forme complesse e parti di oggetti (strati finali). Questa parte della rete non "classifica" ancora, ma "comprende" cosa c'è nell'immagine.
@@ -298,7 +298,7 @@ Inoltre, se le box proposte sono sbagliate, con la backpropagation riusciamo a o
 
 Ad esempio, diamo in input un'immagine, e vogliamo in output un'altra immagine che mi chiarisce i contorni dell'immagine di input. Per ogni pixel, vogliamo sapere a quale classe appartiene questo pixel. Questo è un altro caso di classificazione, ma in questo caso la classificazione non è un semplice output, ma un'immagine.
 
-![Cows](../assets/cnn_cows.png)
+![Cows](../../assets/deep-learning-intro-course/03//cnn_cows.png)
 
 **Esempio**: in campo medico, per isolare con precisione chirurgica l'area di un tumore in una risonanza magnetica, distinguendo il tessuto malato da quello sano.
 

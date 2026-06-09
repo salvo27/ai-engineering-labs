@@ -100,7 +100,7 @@ We will then apply a bias, added to the result of the multiplication, and then a
 As we said earlier, instead of flattening the input and processing it, we will focus on smaller filters, applying the same sequence of operations: element-wise product between the filter and the image portion, sum of the results, addition of the bias, and application of a non-linear activation function.
 
 ### Case study
-![X](../assets/x.png)
+![X](../../assets/deep-learning-intro-course/03//x.png)
 
 Imagine we want to classify, that is recognize, whether an image is an X or not.
 
@@ -111,13 +111,13 @@ What we can immediately notice is that for classification, we certainly cannot u
 We therefore need to do it using a feature-based approach.
 We will focus on the portions.
 
-![X Comparison](../assets/x_comparison.png)
+![X Comparison](../../assets/deep-learning-intro-course/03//x_comparison.png)
 
 Even though these images are different pixel by pixel, looking at them more carefully, they share the same pattern, they have the same features.
 
 Each filter is a weight matrix with the same dimensions as a portion of the image: it is overlaid on it to detect a specific feature, such as a diagonal or a cross. Let us define our filters, needed to determine whether our image is an X:
 
-![X Filters](../assets/x_filters.png)
+![X Filters](../../assets/deep-learning-intro-course/03//x_filters.png)
 
 Our filters are 3: diagonal 1, a cross, and diagonal 2.
 
@@ -125,7 +125,7 @@ At this point, what we need to define is the operation we will use to put all of
 
 The operation is called convolution, which is nothing more than an element-wise multiplication of the portion by the filter.
 
-![X Convolution](../assets/x_convolution.png)
+![X Convolution](../../assets/deep-learning-intro-course/03//x_convolution.png)
 
 In our case, from this multiplication we get 9 as the result, meaning there is a perfect match between our portion and our filter.
 
@@ -134,7 +134,7 @@ Very negative number: poor match.
 
 Imagine applying the convolution of a 5x5 matrix with a 3x3 filter, we will get a 3x3 matrix as output (with stride = 1):
 
-![Convolution](../assets/convolution.png)
+![Convolution](../../assets/deep-learning-intro-course/03//convolution.png)
 
 Essentially for every definable 3x3 portion of our matrix, we will have a result in the feature map (the result of the convolution operations).
 
@@ -153,7 +153,7 @@ So overlap is not a flaw, it is a design choice: it ensures that the filter has 
 
 Let us imagine creating our own filters, with their respective weights, and see how different filters can produce different features, different feature maps:
 
-![Feature Map](../assets/feature_map.png)
+![Feature Map](../../assets/deep-learning-intro-course/03//feature_map.png)
 
 Let us look at the results of convolving this image with different filters:
 - the first filter is used to analyze the sharpness of the image;
@@ -172,7 +172,7 @@ Before looking at Convolutional Neural Networks, let us do a brief recap. We wen
 ## Convolutional Neural Networks (CNNs)
 Let us look at what a CNN looks like in the case of image classification:
 
-![CNN](../assets/cnn.png)
+![CNN](../../assets/deep-learning-intro-course/03//cnn.png)
 
 Our goal is to learn features directly from our images, and we want to use these extracted features to perform classifications. In short, we extract what a horse looks like for example, and then use these extracted features to answer a classification problem asking whether the image we give as input is a horse or not.
 
@@ -185,7 +185,7 @@ Our goal is therefore to train our model on a set of images, that is, we train t
 
 For each neuron in the hidden layer, we take the inputs from the portions (as we said, one input per portion), calculate the weighted sum, apply the bias.
 
-![Convolutional layers](../assets/conv_layers.png)
+![Convolutional layers](../../assets/deep-learning-intro-course/03//conv_layers.png)
 
 The filter is a small weight matrix, for example 3x3. It is the tool the network uses to look for a specific feature in the image, such as a vertical edge, a curve, or a patch of color.
 The feature map is the result of that filter applied to the entire image: it is a map that says "at this position I found that feature, at this other one I did not". One filter always produces one feature map.
@@ -201,7 +201,7 @@ Concrete example. Imagine wanting to recognize a cat.
 
 As we go deeper, features become combinations of previous ones. Starting from layer 1 with 32 types of edges, layer 2 needs to look for all possible combinations of those edges to form shapes. The number of combinations grows very quickly, so more filters are needed to cover them all adequately.
 
-![Volume](../assets/cnn_volume.png)
+![Volume](../../assets/deep-learning-intro-course/03//cnn_volume.png)
 
 Each piece of our output volume is influenced by a small piece of the original input portion.
 
@@ -209,7 +209,7 @@ Once we have obtained this volume, the next step is to apply the non-linearity f
 As we have already said, the most common is ReLU.
 It takes every negative value and makes it zero, and takes every positive value and leaves it as is, behaving as the identity function in the case of positive values.
 
-![ReLU](../assets/relu_cnn.png)
+![ReLU](../../assets/deep-learning-intro-course/03//relu_cnn.png)
 
 $$ g(z) = max(0, z) $$
 
@@ -222,7 +222,7 @@ To better understand this concept, think of Pooling as a lens that allows us to 
 
 Relative size: when we reduce the matrix, each resulting value "represents" a wider portion of the original image than before.
 
-![Pooling](../assets/pooling_cnn.png)
+![Pooling](../../assets/deep-learning-intro-course/03//pooling_cnn.png)
 
 Instead of always analyzing micro-details, neurons in subsequent layers begin to see more complex structures. By reducing the spatial scale, the network stops focusing on the exact "where" a pixel is located and starts understanding "what" is present in that area, moving from simple edges to parts of larger objects.
 
@@ -240,12 +240,12 @@ If we use Pooling windows that are too small (e.g. 1x1 or 2x2):
 
 Let us look at an example of a CNN:
 
-![Example](../assets/cnn_example.png)
+![Example](../../assets/deep-learning-intro-course/03//cnn_example.png)
 
 ## CNNs for classification
 A CNN for classification can ideally be divided into two distinct functional blocks, working in sequence:
 
-![Classification Example](../assets/cnn_classification_example.png)
+![Classification Example](../../assets/deep-learning-intro-course/03//cnn_classification_example.png)
 
 - **feature extractor**: this is the convolutional part of the network. It is composed of a succession of blocks [Convolution $\rightarrow$ ReLU $\rightarrow$ Pooling].
 The depth of this section (how many layers we stack) depends on the complexity of the task. The deeper the network, the more abstract the extracted features become: it goes from simple edges (early layers) to complex shapes and parts of objects (final layers). This part of the network does not "classify" yet, it "understands" what is in the image.
@@ -298,7 +298,7 @@ Furthermore, if the proposed boxes are wrong, we can optimize bounding box detec
 
 For example, we give an image as input, and we want as output another image that clarifies the contours of the input image. For each pixel, we want to know which class that pixel belongs to. This is another case of classification, but here the classification is not a simple output, it is an image.
 
-![Cows](../assets/cnn_cows.png)
+![Cows](../../assets/deep-learning-intro-course/03//cnn_cows.png)
 
 **Example**: in the medical field, to surgically isolate the area of a tumor in an MRI scan, distinguishing diseased tissue from healthy tissue.
 
